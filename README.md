@@ -1,16 +1,24 @@
-# Proof of Twitter
+```
+.########.##....##.########.....########..####..######...#######...######..########..########.
+......##..##...##..##.....##....##.....##..##..##....##.##.....##.##....##.##.....##.##.....##
+.....##...##..##...##.....##....##.....##..##..##.......##.....##.##.......##.....##.##.....##
+....##....#####....########.....##.....##..##...######..##.....##.##.......########..##.....##
+...##.....##..##...##...........##.....##..##........##.##.....##.##.......##...##...##.....##
+..##......##...##..##...........##.....##..##..##....##.##.....##.##....##.##....##..##.....##
+.########.##....##.##...........########..####..######...#######...######..##.....##.########.
+```
 
-Prove ownership of a X (Twitter) account using an email from Twitter, and mint an NFT with your Twitter username.
+# Proof of Discord
+
+Prove ownership of a Discord account using an email from Discord, and mint an NFT with your Discord username.
 
 This project is a demonstration of ZK Email. You can fork it to build other projects using ZK Email.
 
-Try it here: https://twitter.prove.email/
-
 ## How it works
 
-You can use an email from Twitter that contains `email was meant for @username` to generate a ZK proof that you own the Twitter account `@username`.
+You can use an email from Discord that contains `email was meant for @username` to generate a ZK proof that you own the Discord account `@username`.
 
-This ZK proof can be used to mint an NFT corresponding to your username in the `ProofOfTwitter` contract.
+This ZK proof can be used to mint an NFT corresponding to your username in the `ProofOfDiscord` contract.
 
 ## Running locally
 
@@ -36,20 +44,20 @@ If you want to generate the proof locally outside browser, follow the instructio
 
 ### Circuits
 
-Circom circuits are located in `packages/circuits`, the main circuit being [twitter.circom](packages/circuits/twitter.circom). TwitterVerifier circuit use [EmailVerifier](https://github.com/zkemail/zk-email-verify/blob/main/packages/circuits/email-verifier.circom) circuit from `@zk-email/circuits`.
+Circom circuits are located in `packages/circuits`, the main circuit being [discord.circom](packages/circuits/discord.circom). discordVerifier circuit use [EmailVerifier](https://github.com/zkemail/zk-email-verify/blob/main/packages/circuits/email-verifier.circom) circuit from `@zk-email/circuits`.
 
-The regex circuit required to parse/extract Twitter username can be generated using [https://github.com/zkemail/zk-regex](zk-regex) package.
+The regex circuit required to parse/extract Discord username can be generated using [https://github.com/zkemail/zk-regex](zk-regex) package.
 
-#### » Generate Twitter Regex Circuit
+#### » Generate Discord Regex Circuit
 
 ```bash
 # CWD = packages/circuits
 yarn generate-regex
 ```
 
-This will generate `components/twitter_reset.circom` using the config in `components/twitter_reset.json`. This `twitter_reset.circom` is imported in `twitter.circom`.
+This will generate `components/discord_reset.circom` using the config in `components/discord_reset.json`. This `discord_reset.circom` is imported in `discord.circom`.
 
-Note that `twitter_reset.circom` is already in repo, so this step is optional.
+Note that `discord_reset.circom` is already in repo, so this step is optional.
 
 #### » Build the circuit
 
@@ -58,7 +66,7 @@ Note that `twitter_reset.circom` is already in repo, so this step is optional.
 yarn build
 ```
 
-This will create `twitter.wasm` and other files in `packages/circuits/build` directory.
+This will create `discord.wasm` and other files in `packages/circuits/build` directory.
 
 You can test the circuit using
 
@@ -80,24 +88,23 @@ This will generate `zkey` files, `vkey.json` in `build` directory, and Solidity 
 
 > Note: We are using a custom fork of `snarkjs` which generated **chunked zkeys**. Chunked zkeys make it easier to use in browser, especially since we have large circuit. You can switch to regular `snarkjs` in `package.json` if you don't want to use chunked zkeys.
 
+For browser use, the script also compresses the chunked zkeys.
 
-For browser use, the script also compresses the chunked zkeys. 
-
-**The compressed zkeys, vkey, wasm are copied to /build/artifacts` directory. This directory can be served using a local server or uploaded to S3 for use in the browser.
+\*\*The compressed zkeys, vkey, wasm are copied to /build/artifacts` directory. This directory can be served using a local server or uploaded to S3 for use in the browser.
 
 To upload to S3, the below script can be used.
+
 ```bash
-python3 upload_to_s3.py --build-dir <project-path>/proof-of-twitter/packages/circuits/build --circuit-name twitter 
+python3 upload_to_s3.py --build-dir <project-path>/proof-of-discord/packages/circuits/build --circuit-name discord
 ```
 
 There are helper functions in `@zk-email/helpers` package to download and decompress the zkeys in the browser.
-
 
 #### » Generate Input and Proof
 
 ```bash
 # CWD = packages/circuits/scripts
-ts-node generate-proof.ts --email-file ../tests/emls/twitter-test.eml --ethereum-address <your-eth-address>
+ts-node generate-proof.ts --email-file ../tests/emls/discord-test.eml --ethereum-address <your-eth-address>
 ```
 
 This will generate input + witness using the given email file and Ethereum address, and prove using the generated zkey.
@@ -108,7 +115,7 @@ The script also verify the generated proof are correct. You can use the proof an
 
 ### Contracts
 
-The solidity contracts can be found in `packages/contracts`. The main contract is [ProofOfTwitter.sol](packages/contracts/src/ProofOfTwitter.sol).
+The solidity contracts can be found in `packages/contracts`. The main contract is [ProofOfdiscord.sol](packages/contracts/src/ProofOfdiscord.sol).
 
 #### You can build the contracts using
 
@@ -126,13 +133,13 @@ yarn test
 
 Note that the tests will not pass if you have generated your own zkeys and `Verifier.sol` as you would have used a different Entropy.
 
-To fix, update the `publicSignals` and `proof` in `test/TestTwitter.t.sol` with the values from `input.json` and `public.json` generated from the above steps. (Remember that you need to flip items in the nested array of `pi_b`).
+To fix, update the `publicSignals` and `proof` in `test/Testdiscord.t.sol` with the values from `input.json` and `public.json` generated from the above steps. (Remember that you need to flip items in the nested array of `pi_b`).
 
 #### Deploy contracts
 
 ```bash
 # CWD = packages/contracts
-PRIVATE_KEY=<pk-hex> forge script script/DeployTwitter.s.sol:Deploy -vvvv --rpc-url https://rpc2.sepolia.org --broadcast
+PRIVATE_KEY=<pk-hex> forge script script/Deploydiscord.s.sol:Deploy -vvvv --rpc-url https://rpc2.sepolia.org --broadcast
 ```
 
 Currently deployed contracts on Sepolia:
@@ -140,16 +147,15 @@ Currently deployed contracts on Sepolia:
 ```
   Deployed Verifier at address: 0x6096601EB33d636b0e21593469920d06647FA955
   Deployed DKIMRegistry at address: 0x993873c1b46c756b60089cBbE3baEEC9Fa292e9f
-  Deployed ProofOfTwitter at address: 0x86D390fDed54447fD244eD0718dbFCFCcbbA7edc
+  Deployed ProofOfdiscord at address: 0x86D390fDed54447fD244eD0718dbFCFCcbbA7edc
 ```
 
 ### UI
 
 If you want to update the UI based on your own zkeys and contracts, please make the below changes:
 
-- Set the `VITE_CONTRACT_ADDRESS` in `packages/app/.env`. This is the address of the `ProofOfTwitter` contract.
+- Set the `VITE_CONTRACT_ADDRESS` in `packages/app/.env`. This is the address of the `ProofOfdiscord` contract.
 - Set `VITE_CIRCUIT_ARTIFACTS_URL` in `packages/app/.env` to the URL of the directory containing circuit artifacts (compressed partial zkeys, wasm, verifier, etc). You can run a local server in `circuits/build/artifacts` directory and use that URL or upload to S3 (or similar) and use that public URL/
-
 
 ## History
 
